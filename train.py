@@ -16,6 +16,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
 from dataset import PDBbind
 from models import *
+from transforms.molecular_dropout import MolecularDropout
 
 
 def run(args):
@@ -51,10 +52,18 @@ def run(args):
 
 
 def configure_voxel_grid(args):
+    views = [eval(v)() for v in args.view]
+
+    if args.molecular_dropout > 0.0:
+        views = [
+            MolecularDropout(v, args.molecular_dropout, args.molecular_dropout_unit)
+            for v in views
+        ]
+
     return docktgrid.VoxelGrid(
         vox_size=args.vox_size,
         box_dims=args.box_dims,
-        views=[eval(v)() for v in args.view],
+        views=views,
     )
 
 

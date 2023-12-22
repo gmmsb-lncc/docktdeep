@@ -3,6 +3,8 @@ import torch
 from docktgrid.molecule import MolecularComplex
 from docktgrid.view import View
 
+__all__ = ["MolecularDropout"]
+
 
 class MolecularDropout(View):
     """A wrapper to apply a `molecular dropout` transformation to any view.
@@ -33,13 +35,11 @@ class MolecularDropout(View):
         p: float,
         molecular_unit: str,
         beta_probability: float = 0.5,
-        rng: np.random.Generator = np.random.default_rng(),
     ):
         self.view = view
         self.p = p
         self.molecular_unit = molecular_unit
         self.bp = beta_probability
-        self.rng = rng
 
         if molecular_unit not in ["protein", "ligand", "complex"]:
             raise ValueError(
@@ -120,9 +120,6 @@ class MolecularDropout(View):
             (num_of_channels_defined_for_this_view, n_atoms_complex)
 
         """
-        alpha, beta = self.rng.uniform(size=2)
-        self.set_random_nums(alpha, beta)
-
         complex = self.get_molecular_complex_channels(molecular_complex)
         protein = self.get_protein_channels(molecular_complex)
         ligand = self.get_ligand_channels(molecular_complex)

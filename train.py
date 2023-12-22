@@ -16,7 +16,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
 from dataset import PDBbind
 from models import *
-from transforms.molecular_dropout import MolecularDropout
+from transforms import MolecularDropout
 
 
 def run(args):

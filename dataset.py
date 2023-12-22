@@ -10,7 +10,7 @@ import torch
 from docktgrid.transforms import RandomRotation
 from torch.utils.data import Dataset
 
-from transforms.molecular_dropout import MolecularDropout
+from transforms import MolecularDropout
 
 
 class PDBbind(pl.LightningDataModule):

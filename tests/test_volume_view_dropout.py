@@ -1,7 +1,7 @@
 from docktgrid.molecule import MolecularComplex
 from docktgrid.view import VolumeView
 
-from transforms.molecular_dropout import MolecularDropout
+from transforms import MolecularDropout
 
 
 def test_drops_protein_from_when_dropping_protein():

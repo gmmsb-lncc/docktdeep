@@ -10,7 +10,7 @@ import torch
 from docktgrid.transforms import RandomRotation
 from torch.utils.data import Dataset
 
-from transforms import MolecularDropout
+from transforms import MolecularDropout, Random90DegreesRotation
 
 
 class PDBbind(pl.LightningDataModule):
@@ -19,7 +19,7 @@ class PDBbind(pl.LightningDataModule):
         voxel_grid: docktgrid.VoxelGrid,
         batch_size: int,
         dataframe_path: str = "/home/mpds/data/pdbbind2020-refined-prepared/index.csv",
-        random_rotation: bool = False,
+        transforms=None,
         molecular_dropout: float = 0.0,
         root_dir: str = "",
         **kwargs,
@@ -28,7 +28,7 @@ class PDBbind(pl.LightningDataModule):
         self.voxel_grid = voxel_grid
         self.batch_size = batch_size
         self.df_path = dataframe_path
-        self.transform = random_rotation
+        self.transforms = transforms
         self.molecular_dropout = False if molecular_dropout <= 0.0 else True
         self.root_dir = root_dir
 
@@ -41,6 +41,7 @@ class PDBbind(pl.LightningDataModule):
         parser.add_argument("--box-dims", type=list, default=[24.0, 24.0, 24.0])
         parser.add_argument("--view", nargs="+", type=str, default=["VolumeView", "BasicView"])
         parser.add_argument("--random-rotation", action="store_true", default=False)
+        parser.add_argument("--random-90degree-rotation", action="store_true", default=False)
         parser.add_argument("--molecular-dropout", type=float, default=0.0)
         parser.add_argument("--molecular-dropout-unit", type=str, default="protein", help="protein, ligand, or complex")
         # fmt: on
@@ -84,7 +85,7 @@ class PDBbind(pl.LightningDataModule):
             ligand_files=ligand_mols,
             labels=range(len(protein_files)),
             voxel=self.voxel_grid,
-            transform=[RandomRotation] if self.transform else None,
+            transform=self.transforms,
             molecular_dropout=self.molecular_dropout,
         )
 
@@ -142,16 +143,23 @@ class VoxelDataset(Dataset):
         )
         label = self.labels[idx]
 
+        # apply random rotation
         for transform in self.transform or []:
             if isinstance(transform, RandomRotation):
                 transform(molecule.coords, molecule.ligand_center)
 
+        # apply molecular dropout
         if self.molecular_dropout:
             alpha, beta = self.rng.uniform(size=2)
             for v in self.voxel.views:
                 v.set_random_nums(alpha, beta)
             label = torch.tensor(0.0, dtype=torch.float32)
 
-        voxs = self.voxel.voxelize(molecule)
+        voxs = self.voxel.voxelize(molecule)  # <- voxelization happens here
+
+        # apply random 90 degree rotation
+        for transform in self.transform or []:
+            if isinstance(transform, Random90DegreesRotation):
+                voxs = transform(voxs)
 
         return voxs, label

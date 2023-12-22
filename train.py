@@ -9,14 +9,13 @@ import docktgrid
 import dotenv
 import lightning.pytorch as pl
 import torch
-import torch.multiprocessing as mp
 from aim.pytorch_lightning import AimLogger
 from docktgrid.view import BasicView, VolumeView
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
 from dataset import PDBbind
 from models import *
-from transforms import MolecularDropout
+from transforms import MolecularDropout, Random90DegreesRotation
 
 
 def run(args):
@@ -37,12 +36,19 @@ def run(args):
         logger=logger,
     )
 
+    transforms = []
+    if args.random_rotation:
+        transforms.append(docktgrid.transforms.RandomRotation())
+    if args.random_90degree_rotation:
+        transforms.append(Random90DegreesRotation())
+
     voxel_grid = configure_voxel_grid(args)
     model = eval(args.model)(input_size=voxel_grid.shape, **vars(args))
     data_module = PDBbind(
         voxel_grid=voxel_grid,
         dataframe_path="data/index.csv",
         root_dir="data/processed",
+        transforms=transforms,
         **vars(args)
     )
 

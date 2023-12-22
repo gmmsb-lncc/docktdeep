@@ -1,9 +1,62 @@
-import numpy as np
+import random
+
 import torch
 from docktgrid.molecule import MolecularComplex
 from docktgrid.view import View
 
-__all__ = ["MolecularDropout"]
+__all__ = ["MolecularDropout", "Random90DegreesRotation"]
+
+
+class Random90DegreesRotation:
+    def __init__(self, **kwargs) -> None:
+        pass
+
+    def rotate90(self, cube: torch.Tensor, k: int or None, axes: tuple[int]):
+        """Perform rotation by 90 degrees in the given axis."""
+        if not k or not axes:
+            return cube
+
+        return torch.stack(
+            [torch.rot90(cube[ch], k, axes) for ch in range(cube.shape[0])]
+        )
+
+    def get_rotation_params(self, param_idx: int = random.randint(0, 5)):
+        # suppose shape is pointing in axis 0 (up)
+        roulette = {
+            # no pre-rotation, still points up
+            0: {"k": None, "adjusted_axes": None, "axes": (1, 2)},
+            # pre-rotate 180 about axis 1, now shape is pointing down in axis 0
+            1: {"k": 2, "adjusted_axes": (0, 2), "axes": (1, 2)},
+            # pre-rotate 90 about axis 1, now shape is pointing in axis 2
+            2: {"k": 1, "adjusted_axes": (0, 2), "axes": (0, 1)},
+            # pre-rotate 270 about axis 1, now shape is pointing in axis 2
+            3: {"k": -1, "adjusted_axes": (0, 2), "axes": (0, 1)},
+            # pre-rotate 90 about axis 2, now shape is pointing in axis 1
+            4: {"k": 1, "adjusted_axes": (0, 1), "axes": (0, 2)},
+            # pre-rotate 270 about axis 2, now shape is pointing in axis 1
+            5: {"k": -1, "adjusted_axes": (0, 1), "axes": (0, 2)},
+        }
+
+        # adjust orientation and perform random rotation
+        return roulette[param_idx]
+
+    def rotate(self, cube: torch.Tensor) -> torch.Tensor:
+        """Random grid rotations in all different orientations.
+
+        Adapted from: https://stackoverflow.com/a/33190472
+        """
+
+        # adjust orientation and perform random rotation
+        params = self.get_rotation_params(random.randint(0, 5))
+
+        return self.rotate90(
+            self.rotate90(cube, params["k"], params["adjusted_axes"]),
+            random.randint(0, 3),
+            params["axes"],
+        )
+
+    def __call__(self, grid: torch.Tensor) -> torch.Tensor:
+        return self.rotate(grid)
 
 
 class MolecularDropout(View):

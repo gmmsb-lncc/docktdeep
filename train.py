@@ -42,7 +42,7 @@ def run(args):
     data_module = PDBbind(
         voxel_grid=voxel_grid,
         dataframe_path="data/index.csv",
-        root_dir="../docktgrid/data/processed",
+        root_dir="data/processed",
         **vars(args)
     )
 

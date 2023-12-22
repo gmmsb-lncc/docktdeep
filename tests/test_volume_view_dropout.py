@@ -1,3 +1,5 @@
+import random
+
 from docktgrid.molecule import MolecularComplex
 from docktgrid.view import VolumeView
 
@@ -12,6 +14,9 @@ def test_drops_protein_from_when_dropping_protein():
     )
 
     view = MolecularDropout(view=VolumeView(), p=1.0, molecular_unit="protein")
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -26,6 +31,9 @@ def test_does_not_drop_ligand_when_dropping_protein():
     )
 
     view = MolecularDropout(view=VolumeView(), p=1.0, molecular_unit="protein")
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -40,6 +48,9 @@ def test_drops_ligand_when_dropping_ligand():
     )
 
     view = MolecularDropout(view=VolumeView(), p=1.0, molecular_unit="ligand")
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -54,6 +65,9 @@ def test_does_not_drop_protein_when_dropping_ligand():
     )
 
     view = MolecularDropout(view=VolumeView(), p=1.0, molecular_unit="ligand")
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -73,6 +87,10 @@ def test_drops_protein_when_dropping_complex():
         molecular_unit="complex",
         beta_probability=1.0,  # ensures that beta <= bp, so protein is dropped
     )
+
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -92,6 +110,10 @@ def test_drops_ligand_when_dropping_complex():
         molecular_unit="complex",
         beta_probability=0.0,  # ensures that beta > bp, so ligand is dropped
     )
+
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -111,6 +133,10 @@ def test_does_not_drop_protein_when_dropping_complex():
         molecular_unit="complex",
         beta_probability=0.0,  # ensures that beta > bp, so ligand is dropped
     )
+
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)
@@ -130,6 +156,10 @@ def test_does_not_drop_ligand_when_dropping_complex():
         molecular_unit="complex",
         beta_probability=1.0,  # ensures that beta <= bp, so protein is dropped
     )
+
+    alpha, beta = random.random(), random.random()
+    view.set_random_nums(alpha, beta)
+
     channels = view(mol)
 
     assert channels.shape == (3, mol.n_atoms)

@@ -1,5 +1,5 @@
 # docktdeep
-Absolute protein-ligand binding affinity prediction using CNNs.
+Protein-ligand binding affinity prediction using CNNs.
 
 ## Installation
 

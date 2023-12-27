@@ -120,6 +120,9 @@ class MolecularDropout(View):
             return None
 
         alpha, beta = self.get_random_nums()
+        if alpha > self.p:
+            return chs
+
         unit = self.molecular_unit
         if unit == "complex":
             unit = "protein" if beta <= self.bp else "ligand"
@@ -134,7 +137,12 @@ class MolecularDropout(View):
 
     def get_protein_channels(self, pl_complex: MolecularComplex):
         chs = self.view.get_protein_channels(pl_complex)
+        if chs is None:
+            return None
+
         alpha, beta = self.get_random_nums()
+        if alpha > self.p:
+            return chs
 
         unit = self.molecular_unit
         if unit == "complex":
@@ -149,7 +157,12 @@ class MolecularDropout(View):
 
     def get_ligand_channels(self, pl_complex: MolecularComplex):
         chs = self.view.get_ligand_channels(pl_complex)
+        if chs is None:
+            return None
+
         alpha, beta = self.get_random_nums()
+        if alpha > self.p:
+            return chs
 
         unit = self.molecular_unit
         if unit == "complex":

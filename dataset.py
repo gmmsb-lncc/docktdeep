@@ -29,7 +29,7 @@ class PDBbind(pl.LightningDataModule):
         self.batch_size = batch_size
         self.df_path = dataframe_path
         self.transforms = transforms
-        self.molecular_dropout = False if molecular_dropout <= 0.0 else True
+        self.molecular_dropout = molecular_dropout
         self.root_dir = root_dir
 
     @staticmethod
@@ -83,7 +83,7 @@ class PDBbind(pl.LightningDataModule):
         data = VoxelDataset(
             protein_files=protein_mols,
             ligand_files=ligand_mols,
-            labels=range(len(protein_files)),
+            labels=dataset.delta_g.values,
             voxel=self.voxel_grid,
             transform=self.transforms,
             molecular_dropout=self.molecular_dropout,
@@ -117,7 +117,7 @@ class VoxelDataset(Dataset):
         voxel: docktgrid.VoxelGrid,
         molparser: docktgrid.molparser.MolecularParser = docktgrid.molparser.MolecularParser(),
         transform: Optional[list[docktgrid.transforms.Transform]] = None,
-        molecular_dropout: bool = False,
+        molecular_dropout: float = 0.0,
         rng: np.random.Generator = np.random.default_rng(),
         root_dir: str = "",
     ):
@@ -149,11 +149,13 @@ class VoxelDataset(Dataset):
                 transform(molecule.coords, molecule.ligand_center)
 
         # apply molecular dropout
-        if self.molecular_dropout:
+        if self.molecular_dropout > 0.0:
             alpha, beta = self.rng.uniform(size=2)
             for v in self.voxel.views:
                 v.set_random_nums(alpha, beta)
-            label = torch.tensor(0.0, dtype=torch.float32)
+
+            if alpha <= self.molecular_dropout:
+                label = torch.tensor(0.0, dtype=torch.float32)
 
         voxs = self.voxel.voxelize(molecule)  # <- voxelization happens here
 

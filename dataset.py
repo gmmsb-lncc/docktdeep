@@ -85,8 +85,8 @@ class PDBbind(pl.LightningDataModule):
             ligand_files=ligand_mols,
             labels=dataset.delta_g.values,
             voxel=self.voxel_grid,
-            transform=self.transforms,
-            molecular_dropout=self.molecular_dropout,
+            transform=self.transforms if split == "train" else None,
+            molecular_dropout=self.molecular_dropout if split == "train" else 0.0,
         )
 
         return data

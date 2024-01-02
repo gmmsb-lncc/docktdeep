@@ -1,3 +1,4 @@
+import copy
 import os
 import pickle
 from typing import Optional
@@ -21,6 +22,7 @@ class PDBbind(pl.LightningDataModule):
         dataframe_path: str = "/home/mpds/data/pdbbind2020-refined-prepared/index.csv",
         transforms=None,
         molecular_dropout: float = 0.0,
+        molecular_dropout_unit: str = "",
         root_dir: str = "",
         **kwargs,
     ):
@@ -30,6 +32,7 @@ class PDBbind(pl.LightningDataModule):
         self.df_path = dataframe_path
         self.transforms = transforms
         self.molecular_dropout = molecular_dropout
+        self.molecular_dropout_unit = molecular_dropout_unit
         self.root_dir = root_dir
 
     @staticmethod
@@ -80,11 +83,21 @@ class PDBbind(pl.LightningDataModule):
             ptn.coords = ptn.coords[:, inside_atoms_idx]
             ptn.element_symbols = ptn.element_symbols[inside_atoms_idx]
 
+        # apply molecular dropout view
+        voxel_grid = self.voxel_grid
+        if self.molecular_dropout > 0.0 and split == "train":
+            voxel_grid = copy.deepcopy(self.voxel_grid)
+            views = [
+                MolecularDropout(v, self.molecular_dropout, self.molecular_dropout_unit)
+                for v in voxel_grid.views
+            ]
+            voxel_grid.views = views
+
         data = VoxelDataset(
             protein_files=protein_mols,
             ligand_files=ligand_mols,
             labels=dataset.delta_g.values,
-            voxel=self.voxel_grid,
+            voxel=voxel_grid,
             transform=self.transforms if split == "train" else None,
             molecular_dropout=self.molecular_dropout if split == "train" else 0.0,
         )

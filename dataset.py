@@ -56,6 +56,7 @@ class PDBbind(pl.LightningDataModule):
 
         self.train_dataset = self.get_dataset("train")
         self.val_dataset = self.get_dataset("validation")
+        self.test_dataset = self.get_dataset("test")
 
     def get_dataset(self, split: str):
         dataset = self.df[self.df.split == split]
@@ -112,6 +113,11 @@ class PDBbind(pl.LightningDataModule):
     def val_dataloader(self):
         return torch.utils.data.DataLoader(
             self.val_dataset, batch_size=self.batch_size, shuffle=False
+        )
+
+    def test_dataloader(self):
+        return torch.utils.data.DataLoader(
+            self.test_dataset, batch_size=self.batch_size, shuffle=False
         )
 
 

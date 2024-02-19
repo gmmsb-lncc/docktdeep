@@ -40,7 +40,7 @@ class PDBbind(pl.LightningDataModule):
         # fmt: off
         parser = parent_parser.add_argument_group("Data args")
         parser.add_argument("--batch-size", type=int, default=64)
-        parser.add_argument("--vox-size", type=int, default=1.0)
+        parser.add_argument("--vox-size", type=float, default=1.0)
         parser.add_argument("--box-dims", type=list, default=[24.0, 24.0, 24.0])
         parser.add_argument("--view", nargs="+", type=str, default=["VolumeView", "BasicView"])
         parser.add_argument("--random-rotation", action="store_true", default=False)

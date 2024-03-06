@@ -80,7 +80,7 @@ def configure_callbacks():
     monitor, mode = "val_pearsonr", "max"
     patience = 1000
     callbacks = [
-        EarlyStopping(monitor=monitor, mode=mode, patience=patience),
+        # EarlyStopping(monitor=monitor, mode=mode, patience=patience),
         ModelCheckpoint(monitor=monitor, mode=mode, save_top_k=1),
     ]
     return callbacks

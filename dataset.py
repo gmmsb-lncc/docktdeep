@@ -64,33 +64,22 @@ class PDBbind(pl.LightningDataModule):
         # split scheme
         # if split == "train":
         #     dataset = self.df[
-        #         (
-        #             self.df[
-        #                 (self.df["lppdbbind_split"] == "train")
-        #                 & self.df.F1
-        #                 & (self.df.random_split != "ERR")
-        #             ]
-        #         )
+        #         (self.df["lppdbbind_split"] == "train")
+        #         & self.df.F1
+        #         & (self.df.random_split != "ERR")
         #     ]
         # elif split == "validation":
         #     dataset = self.df[
-        #         (
-        #             self.df[
-        #                 (self.df["lppdbbind_split"] == "validation")
-        #                 & self.df.F2
-        #                 & (self.df.random_split != "ERR")
-        #             ]
-        #         )
+        #         (self.df["lppdbbind_split"] == "validation")
+        #         & self.df.F2
+        #         & (self.df.random_split != "ERR")
         #     ]
+
         # elif split == "test":
         #     dataset = self.df[
-        #         (
-        #             self.df[
-        #                 (self.df["lppdbbind_split"] == "test")
-        #                 & self.df.F2
-        #                 & (self.df.random_split != "ERR")
-        #             ]
-        #         )
+        #         (self.df["lppdbbind_split"] == "test")
+        #         & self.df.F2
+        #         & (self.df.random_split != "ERR")
         #     ]
 
         # LP-PDBbind split scheme

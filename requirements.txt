@@ -25,7 +25,7 @@ cryptography==41.0.7
 cycler==0.12.1
 debugpy==1.8.0
 decorator==5.1.1
-docktgrid==0.0.1
+docktgrid==0.0.2
 executing==2.0.1
 fastapi==0.105.0
 fastjsonschema==2.19.1

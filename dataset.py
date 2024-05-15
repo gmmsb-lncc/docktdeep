@@ -24,6 +24,7 @@ class PDBbind(pl.LightningDataModule):
         molecular_dropout: float = 0.0,
         molecular_dropout_unit: str = "",
         root_dir: str = "",
+        experiment: str = "",
         **kwargs,
     ):
         super().__init__()
@@ -34,6 +35,7 @@ class PDBbind(pl.LightningDataModule):
         self.molecular_dropout = molecular_dropout
         self.molecular_dropout_unit = molecular_dropout_unit
         self.root_dir = root_dir
+        self.experiment = experiment
 
     @staticmethod
     def add_specific_args(parent_parser):
@@ -58,29 +60,32 @@ class PDBbind(pl.LightningDataModule):
         self.val_dataset = self.get_dataset("validation")
         self.test_dataset = self.get_dataset("test")
 
+        print(f"Train dataset: {len(self.train_dataset)}")
+        print(f"Validation dataset: {len(self.val_dataset)}")
+        print(f"Test dataset: {len(self.test_dataset)}")
+
     def get_dataset(self, split: str):
-        dataset = self.df[self.df.random_split == split]
+        # dataset = self.df[self.df.random_split == split]
 
-        # split scheme
-        # if split == "train":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "train")
-        #         & self.df.F1
-        #         & (self.df.random_split != "ERR")
-        #     ]
-        # elif split == "validation":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "validation")
-        #         & self.df.F2
-        #         & (self.df.random_split != "ERR")
-        #     ]
+        # split scheme pfam-cv
+        if "pfam" in self.experiment:
+            if split == "train":
+                dataset = self.df[
+                    (self.df[self.experiment] == "train")
+                    & (self.df[self.experiment] == "validation")
+                    & (self.df.random_split != "ERR")
+                ]
+            elif split == "validation":
+                dataset = self.df[
+                    (self.df[self.experiment] == "test")
+                    & (self.df.random_split != "ERR")
+                ]
 
-        # elif split == "test":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "test")
-        #         & self.df.F2
-        #         & (self.df.random_split != "ERR")
-        #     ]
+            elif split == "test":
+                dataset = self.df[
+                    (self.df[self.experiment] == "test")
+                    & (self.df.random_split != "ERR")
+                ]
 
         # LP-PDBbind split scheme
         # if split == "train":

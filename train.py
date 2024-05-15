@@ -46,7 +46,7 @@ def run(args):
     model = eval(args.model)(input_size=voxel_grid.shape, **vars(args))
     data_module = PDBbind(
         voxel_grid=voxel_grid,
-        dataframe_path="data/index.csv",
+        dataframe_path="data/index-pfam.csv",
         root_dir="data/processed",
         transforms=transforms,
         **vars(args)

@@ -72,7 +72,7 @@ class PDBbind(pl.LightningDataModule):
             if split == "train":
                 dataset = self.df[
                     (self.df[self.experiment] == "train")
-                    & (self.df[self.experiment] == "validation")
+                    | (self.df[self.experiment] == "validation")
                     & (self.df.random_split != "ERR")
                 ]
             elif split == "validation":

@@ -1,5 +1,6 @@
 import lightning.pytorch as pl
 import torch
+from torchmetrics.regression import MeanAbsoluteError
 
 __all__ = ["Baseline"]
 
@@ -76,6 +77,7 @@ class Baseline(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.loss_fn = torch.nn.MSELoss()
+        self.mae = MeanAbsoluteError()
         self.validation_step_outputs = []
         self.test_set_outputs = []
         self.validation_logs = []
@@ -188,8 +190,9 @@ class Baseline(pl.LightningModule):
 
         pearsonr = torch.corrcoef(torch.stack((preds, labels)))[0][1]
         loss = torch.stack([x["val_loss"] for x in out]).mean()
+        mae = self.mae(preds, labels)
 
-        log = {"val_pearsonr": pearsonr, "val_loss": loss}
+        log = {"val_pearsonr": pearsonr, "val_loss": loss, "val_mae": mae}
         self.log_dict(log, prog_bar=True, logger=True)
         self.validation_logs.append(log)
 
@@ -198,11 +201,13 @@ class Baseline(pl.LightningModule):
     def on_train_end(self) -> None:
         best_pearsonr = max(self.validation_logs, key=lambda x: x["val_pearsonr"])
         best_loss = min(self.validation_logs, key=lambda x: x["val_loss"])
+        best_mae = min(self.validation_logs, key=lambda x: x["val_mae"])
 
         self.logger.experiment.track(
             {
                 "best_val_pearsonr": best_pearsonr["val_pearsonr"],
                 "best_val_loss": best_loss["val_loss"],
+                "best_val_mae": best_loss["val_mae"],
             },
             context={"subset": "val"},
         )

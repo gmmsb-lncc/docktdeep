@@ -134,10 +134,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--help", "-h", action="help", default=argparse.SUPPRESS)
     args = parser.parse_args()
-
-    print(
-        "hostname: ",
-        subprocess.run(["hostname"], stdout=subprocess.PIPE, text=True).stdout.strip(),
-    )
+    args.hostname = os.uname().nodename
 
     run(args)

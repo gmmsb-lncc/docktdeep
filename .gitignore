@@ -3,6 +3,7 @@ data/
 notebooks/
 env-*/
 imgs/
+isabella/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -52,7 +52,7 @@ class PDBbind(pl.LightningDataModule):
         parser.add_argument("--box-dims", type=list, default=[24.0, 24.0, 24.0])
         parser.add_argument("--view", nargs="+", type=str, default=["VolumeView", "BasicView"])
         parser.add_argument("--random-rotation", action="store_true", default=False)
-        parser.add_argument("--random-90degree-rotation", action="store_true", default=False)
+        parser.add_argument("--rotation-90-degrees", action="store_true", default=False)
         parser.add_argument("--molecular-dropout", type=float, default=0.0)
         parser.add_argument("--molecular-dropout-unit", type=str, default="protein", help="protein, ligand, or complex")
         parser.add_argument("--protein-path-pattern", type=str, default="{c}_protein_prep.pdb.pkl", help="Path pattern for protein files, use {c} as placeholder for PDB ID")

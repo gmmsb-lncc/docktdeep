@@ -39,7 +39,7 @@ def run(args):
     transforms = []
     if args.random_rotation:
         transforms.append(docktgrid.transforms.RandomRotation())
-    if args.random_90degree_rotation:
+    if args.rotation_90_degrees:
         transforms.append(Random90DegreesRotation())
 
     voxel_grid = configure_voxel_grid(args)

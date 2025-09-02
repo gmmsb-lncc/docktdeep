@@ -25,6 +25,8 @@ class PDBbind(pl.LightningDataModule):
         molecular_dropout_unit: str = "",
         root_dir: str = "",
         experiment: str = "",
+        protein_path_pattern: str = "{c}_protein_prep.pdb.pkl",
+        ligand_path_pattern: str = "{c}_ligand_rnum.pdb.pkl",
         **kwargs,
     ):
         super().__init__()
@@ -36,6 +38,8 @@ class PDBbind(pl.LightningDataModule):
         self.molecular_dropout_unit = molecular_dropout_unit
         self.root_dir = root_dir
         self.experiment = experiment
+        self.protein_path_pattern = protein_path_pattern
+        self.ligand_path_pattern = ligand_path_pattern
 
     @staticmethod
     def add_specific_args(parent_parser):
@@ -49,12 +53,14 @@ class PDBbind(pl.LightningDataModule):
         parser.add_argument("--random-90degree-rotation", action="store_true", default=False)
         parser.add_argument("--molecular-dropout", type=float, default=0.0)
         parser.add_argument("--molecular-dropout-unit", type=str, default="protein", help="protein, ligand, or complex")
+        parser.add_argument("--protein-path-pattern", type=str, default="{c}_protein_prep.pdb.pkl", help="Path pattern for protein files, use {c} as placeholder for PDB ID")
+        parser.add_argument("--ligand-path-pattern", type=str, default="{c}_ligand_rnum.pdb.pkl", help="Path pattern for ligand files, use {c} as placeholder for PDB ID")
         # fmt: on
 
         return parent_parser
 
     def setup(self, stage: str = None) -> None:
-        self.df = pd.read_csv(self.df_path)[:200]
+        self.df = pd.read_csv(self.df_path)  # [:200]
 
         self.train_dataset = self.get_dataset("train")
         self.val_dataset = self.get_dataset("validation")
@@ -67,28 +73,30 @@ class PDBbind(pl.LightningDataModule):
     def get_dataset(self, split: str):
         dataset = self.df[self.df.random_split == split]
 
-        protein_files = [f"{c}_protein_prep.pdb.pkl" for c in dataset.id]
-        ligand_files = [f"{c}_ligand_rnum.pdb.pkl" for c in dataset.id]
+        protein_files = [self.protein_path_pattern.format(c=c) for c in dataset.id]
+        ligand_files = [self.ligand_path_pattern.format(c=c) for c in dataset.id]
 
         protein_mols = [
-            pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            # pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            os.path.join(self.root_dir, f)
             for f in protein_files
         ]
         ligand_mols = [
-            pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            # pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            os.path.join(self.root_dir, f)
             for f in ligand_files
         ]
 
-        # exclude atoms outside the box
-        for i, ptn in enumerate(protein_mols):
-            radius = np.ceil(np.sqrt(3) * max(self.voxel_grid.shape[1:]) / 2)
-            inside_atoms_idx = docktgrid.molparser.extract_binding_pocket(
-                ptn.coords, ligand_mols[i].coords.mean(dim=1), radius
-            )
+        # # exclude atoms outside the box
+        # for i, ptn in enumerate(protein_mols):
+        #     radius = np.ceil(np.sqrt(3) * max(self.voxel_grid.shape[1:]) / 2)
+        #     inside_atoms_idx = docktgrid.molparser.extract_binding_pocket(
+        #         ptn.coords, ligand_mols[i].coords.mean(dim=1), radius
+        #     )
 
-            # keep only the atoms inside the binding pocket, rewrite the MolecularData attributes
-            ptn.coords = ptn.coords[:, inside_atoms_idx]
-            ptn.element_symbols = ptn.element_symbols[inside_atoms_idx]
+        #     # keep only the atoms inside the binding pocket, rewrite the MolecularData attributes
+        #     ptn.coords = ptn.coords[:, inside_atoms_idx]
+        #     ptn.element_symbols = ptn.element_symbols[inside_atoms_idx]
 
         # apply molecular dropout view
         voxel_grid = self.voxel_grid

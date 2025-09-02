@@ -27,6 +27,7 @@ class PDBbind(pl.LightningDataModule):
         experiment: str = "",
         protein_path_pattern: str = "{c}_protein_prep.pdb.pkl",
         ligand_path_pattern: str = "{c}_ligand_rnum.pdb.pkl",
+        split_column: str = "random_split",  # Column name in the dataframe used to select train/validation/test splits
         **kwargs,
     ):
         super().__init__()
@@ -40,6 +41,7 @@ class PDBbind(pl.LightningDataModule):
         self.experiment = experiment
         self.protein_path_pattern = protein_path_pattern
         self.ligand_path_pattern = ligand_path_pattern
+        self.split_column = split_column
 
     @staticmethod
     def add_specific_args(parent_parser):
@@ -55,6 +57,7 @@ class PDBbind(pl.LightningDataModule):
         parser.add_argument("--molecular-dropout-unit", type=str, default="protein", help="protein, ligand, or complex")
         parser.add_argument("--protein-path-pattern", type=str, default="{c}_protein_prep.pdb.pkl", help="Path pattern for protein files, use {c} as placeholder for PDB ID")
         parser.add_argument("--ligand-path-pattern", type=str, default="{c}_ligand_rnum.pdb.pkl", help="Path pattern for ligand files, use {c} as placeholder for PDB ID")
+        parser.add_argument("--split-column", type=str, default="random_split", help="Column name in the dataframe used to select train/validation/test splits")
         # fmt: on
 
         return parent_parser
@@ -71,7 +74,7 @@ class PDBbind(pl.LightningDataModule):
         print(f"Test dataset: {len(self.test_dataset)}")
 
     def get_dataset(self, split: str):
-        dataset = self.df[self.df.random_split == split]
+        dataset = self.df[self.df[self.split_column] == split]
 
         protein_files = [self.protein_path_pattern.format(c=c) for c in dataset.id]
         ligand_files = [self.ligand_path_pattern.format(c=c) for c in dataset.id]

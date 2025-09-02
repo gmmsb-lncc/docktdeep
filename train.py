@@ -46,8 +46,6 @@ def run(args):
     model = eval(args.model)(input_size=voxel_grid.shape, **vars(args))
     data_module = PDBbind(
         voxel_grid=voxel_grid,
-        dataframe_path="data/index-pfam.csv",
-        root_dir="data/processed",
         transforms=transforms,
         **vars(args)
     )
@@ -126,6 +124,18 @@ if __name__ == "__main__":
     trainer_parser.add_argument("--gradient-clip-algorithm", type=str, default="norm")
 
     # data args
+    parser.add_argument(
+        "--dataframe-path",
+        type=str,
+        default="data/index.csv",
+        help="Path to the dataframe CSV file."
+    )
+    parser.add_argument(
+        "--root-dir",
+        type=str,
+        default="data/processed",
+        help="Root directory for processed data."
+    )
     parser = PDBbind.add_specific_args(parser)
 
     # model args

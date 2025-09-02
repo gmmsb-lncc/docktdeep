@@ -54,7 +54,7 @@ class PDBbind(pl.LightningDataModule):
         return parent_parser
 
     def setup(self, stage: str = None) -> None:
-        self.df = pd.read_csv(self.df_path)  # [:200]
+        self.df = pd.read_csv(self.df_path)[:200]
 
         self.train_dataset = self.get_dataset("train")
         self.val_dataset = self.get_dataset("validation")
@@ -65,52 +65,7 @@ class PDBbind(pl.LightningDataModule):
         print(f"Test dataset: {len(self.test_dataset)}")
 
     def get_dataset(self, split: str):
-        # dataset = self.df[self.df.random_split == split]
-
-        # split scheme pfam-cv
-        if "pfam" in self.experiment:
-            if split == "train":
-                dataset = self.df[
-                    (
-                        (self.df[self.experiment] == "train")
-                        | (self.df[self.experiment] == "validation")
-                    )
-                    & (self.df.random_split != "ERR")
-                ]
-            elif split == "validation":
-                dataset = self.df[
-                    (self.df[self.experiment] == "test")
-                    & (self.df.random_split != "ERR")
-                ]
-
-            elif split == "test":
-                dataset = self.df[
-                    (self.df[self.experiment] == "test")
-                    & (self.df.random_split != "ERR")
-                ]
-
-        # LP-PDBbind split scheme
-        # if split == "train":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "train")
-        #         & self.df.CL1
-        #         & ~self.df.covalent
-        #         & (self.df.random_split != "ERR")  # structural prep. errors
-        #     ]
-        # elif split == "validation":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "validation")
-        #         & self.df.CL2
-        #         & ~self.df.covalent
-        #         & (self.df.random_split != "ERR")
-        #     ]
-        # elif split == "test":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "test")
-        #         & self.df.CL2
-        #         & ~self.df.covalent
-        #         & (self.df.random_split != "ERR")
-        #     ]
+        dataset = self.df[self.df.random_split == split]
 
         protein_files = [f"{c}_protein_prep.pdb.pkl" for c in dataset.id]
         ligand_files = [f"{c}_ligand_rnum.pdb.pkl" for c in dataset.id]

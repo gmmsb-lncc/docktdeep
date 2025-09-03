@@ -11,7 +11,7 @@ import torch
 from docktgrid.transforms import RandomRotation
 from torch.utils.data import Dataset
 
-from transforms import MolecularDropout, Random90DegreesRotation
+from .transforms import MolecularDropout, Random90DegreesRotation
 
 
 class PDBbind(pl.LightningDataModule):

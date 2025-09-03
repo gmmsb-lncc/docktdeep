@@ -3,7 +3,7 @@ import random
 import numpy as np
 import torch
 
-from transforms import Random90DegreesRotation
+from src.docktdeep.transforms import Random90DegreesRotation
 
 
 def test_all_24_90degree_rotations_are_distinct():

@@ -1,5 +1,4 @@
 # DockTDeep
-This repository provides a robust and rotationally stable CNN-based scoring function for protein-ligand binding affinity prediction. By introducing molecular dropout and effective data augmentation, the model focuses on learning key intermolecular interactions, leading to strong generalization and competitive results on standard benchmarks.
 
 Preprint: **"Data-centric training enables meaningful interaction learning in protein–ligand binding affinity prediction."** [ChemRXiv.](https://chemrxiv.org/engage/chemrxiv/article-details/68a52850728bf9025e40d9e4)
 

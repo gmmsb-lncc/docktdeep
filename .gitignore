@@ -1,5 +1,6 @@
 .aim
 data/
+!tests/data/
 notebooks/
 env-*/
 imgs/

@@ -11,7 +11,7 @@ class Random90DegreesRotation:
     def __init__(self, **kwargs) -> None:
         pass
 
-    def rotate90(self, cube: torch.Tensor, k: int or None, axes: tuple[int]):
+    def rotate90(self, cube: torch.Tensor, k: int | None, axes: tuple[int]):
         """Perform rotation by 90 degrees in the given axis."""
         if not k or not axes:
             return cube

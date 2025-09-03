@@ -1,0 +1,6 @@
+include README.md
+include COPYING.LESSER
+include pyproject.toml
+recursive-include src/docktdeep *.py
+recursive-include tests *.py
+recursive-include tests/data *

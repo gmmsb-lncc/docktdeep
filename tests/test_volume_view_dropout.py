@@ -3,7 +3,7 @@ import random
 from docktgrid.molecule import MolecularComplex
 from docktgrid.view import VolumeView
 
-from transforms import MolecularDropout
+from src.docktdeep.transforms import MolecularDropout
 
 
 def test_drops_protein_from_when_dropping_protein():

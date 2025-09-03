@@ -13,9 +13,9 @@ from aim.pytorch_lightning import AimLogger
 from docktgrid.view import BasicView, VolumeView
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
-from dataset import PDBbind
-from models import *
-from transforms import MolecularDropout, Random90DegreesRotation
+from src.docktdeep.dataset import PDBbind
+from src.docktdeep.models import *
+from src.docktdeep.transforms import MolecularDropout, Random90DegreesRotation
 
 
 def run(args):
@@ -39,18 +39,12 @@ def run(args):
     transforms = []
     if args.random_rotation:
         transforms.append(docktgrid.transforms.RandomRotation())
-    if args.random_90degree_rotation:
+    if args.rotation_90_degrees:
         transforms.append(Random90DegreesRotation())
 
     voxel_grid = configure_voxel_grid(args)
     model = eval(args.model)(input_size=voxel_grid.shape, **vars(args))
-    data_module = PDBbind(
-        voxel_grid=voxel_grid,
-        dataframe_path="data/index-pfam.csv",
-        root_dir="data/processed",
-        transforms=transforms,
-        **vars(args)
-    )
+    data_module = PDBbind(voxel_grid=voxel_grid, transforms=transforms, **vars(args))
 
     trainer.fit(model, datamodule=data_module)
 
@@ -91,9 +85,11 @@ def get_git_revision_hash() -> str:
 
 
 def track_files(logger) -> None:
-    files = [os.path.abspath(__file__), os.path.abspath("dataset.py")]
-    files.extend([os.path.abspath(f) for f in glob.glob("models/*.py")])
-    files.extend([os.path.abspath(f) for f in glob.glob("transforms/*.py")])
+    files = [os.path.abspath(__file__), os.path.abspath("src/docktdeep/dataset.py")]
+    files.extend([os.path.abspath(f) for f in glob.glob("src/docktdeep/models/*.py")])
+    files.extend(
+        [os.path.abspath(f) for f in glob.glob("src/docktdeep/transforms/*.py")]
+    )
     for idx, file in enumerate(files):
         with open(file, "r") as f:
             file = aim.Text(f.read())
@@ -126,6 +122,18 @@ if __name__ == "__main__":
     trainer_parser.add_argument("--gradient-clip-algorithm", type=str, default="norm")
 
     # data args
+    parser.add_argument(
+        "--dataframe-path",
+        type=str,
+        default="data/index.csv",
+        help="Path to the dataframe CSV file.",
+    )
+    parser.add_argument(
+        "--root-dir",
+        type=str,
+        default="data/processed",
+        help="Root directory for processed data.",
+    )
     parser = PDBbind.add_specific_args(parser)
 
     # model args

@@ -11,7 +11,7 @@ import torch
 from docktgrid.transforms import RandomRotation
 from torch.utils.data import Dataset
 
-from transforms import MolecularDropout, Random90DegreesRotation
+from .transforms import MolecularDropout, Random90DegreesRotation
 
 
 class PDBbind(pl.LightningDataModule):
@@ -25,6 +25,9 @@ class PDBbind(pl.LightningDataModule):
         molecular_dropout_unit: str = "",
         root_dir: str = "",
         experiment: str = "",
+        protein_path_pattern: str = "{c}_protein_prep.pdb.pkl",
+        ligand_path_pattern: str = "{c}_ligand_rnum.pdb.pkl",
+        split_column: str = "random_split",  # Column name in the dataframe used to select train/validation/test splits
         **kwargs,
     ):
         super().__init__()
@@ -36,6 +39,9 @@ class PDBbind(pl.LightningDataModule):
         self.molecular_dropout_unit = molecular_dropout_unit
         self.root_dir = root_dir
         self.experiment = experiment
+        self.protein_path_pattern = protein_path_pattern
+        self.ligand_path_pattern = ligand_path_pattern
+        self.split_column = split_column
 
     @staticmethod
     def add_specific_args(parent_parser):
@@ -46,9 +52,12 @@ class PDBbind(pl.LightningDataModule):
         parser.add_argument("--box-dims", type=list, default=[24.0, 24.0, 24.0])
         parser.add_argument("--view", nargs="+", type=str, default=["VolumeView", "BasicView"])
         parser.add_argument("--random-rotation", action="store_true", default=False)
-        parser.add_argument("--random-90degree-rotation", action="store_true", default=False)
+        parser.add_argument("--rotation-90-degrees", action="store_true", default=False)
         parser.add_argument("--molecular-dropout", type=float, default=0.0)
         parser.add_argument("--molecular-dropout-unit", type=str, default="protein", help="protein, ligand, or complex")
+        parser.add_argument("--protein-path-pattern", type=str, default="{c}_protein_prep.pdb.pkl", help="Path pattern for protein files, use {c} as placeholder for PDB ID")
+        parser.add_argument("--ligand-path-pattern", type=str, default="{c}_ligand_rnum.pdb.pkl", help="Path pattern for ligand files, use {c} as placeholder for PDB ID")
+        parser.add_argument("--split-column", type=str, default="random_split", help="Column name in the dataframe used to select train/validation/test splits")
         # fmt: on
 
         return parent_parser
@@ -65,75 +74,32 @@ class PDBbind(pl.LightningDataModule):
         print(f"Test dataset: {len(self.test_dataset)}")
 
     def get_dataset(self, split: str):
-        # dataset = self.df[self.df.random_split == split]
+        dataset = self.df[self.df[self.split_column] == split]
 
-        # split scheme pfam-cv
-        if "pfam" in self.experiment:
-            if split == "train":
-                dataset = self.df[
-                    (
-                        (self.df[self.experiment] == "train")
-                        | (self.df[self.experiment] == "validation")
-                    )
-                    & (self.df.random_split != "ERR")
-                ]
-            elif split == "validation":
-                dataset = self.df[
-                    (self.df[self.experiment] == "test")
-                    & (self.df.random_split != "ERR")
-                ]
-
-            elif split == "test":
-                dataset = self.df[
-                    (self.df[self.experiment] == "test")
-                    & (self.df.random_split != "ERR")
-                ]
-
-        # LP-PDBbind split scheme
-        # if split == "train":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "train")
-        #         & self.df.CL1
-        #         & ~self.df.covalent
-        #         & (self.df.random_split != "ERR")  # structural prep. errors
-        #     ]
-        # elif split == "validation":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "validation")
-        #         & self.df.CL2
-        #         & ~self.df.covalent
-        #         & (self.df.random_split != "ERR")
-        #     ]
-        # elif split == "test":
-        #     dataset = self.df[
-        #         (self.df["lppdbbind_split"] == "test")
-        #         & self.df.CL2
-        #         & ~self.df.covalent
-        #         & (self.df.random_split != "ERR")
-        #     ]
-
-        protein_files = [f"{c}_protein_prep.pdb.pkl" for c in dataset.id]
-        ligand_files = [f"{c}_ligand_rnum.pdb.pkl" for c in dataset.id]
+        protein_files = [self.protein_path_pattern.format(c=c) for c in dataset.id]
+        ligand_files = [self.ligand_path_pattern.format(c=c) for c in dataset.id]
 
         protein_mols = [
-            pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            # pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            os.path.join(self.root_dir, f)
             for f in protein_files
         ]
         ligand_mols = [
-            pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            # pickle.load(open(os.path.join(self.root_dir, f"{f}"), "rb"))
+            os.path.join(self.root_dir, f)
             for f in ligand_files
         ]
 
-        # exclude atoms outside the box
-        for i, ptn in enumerate(protein_mols):
-            radius = np.ceil(np.sqrt(3) * max(self.voxel_grid.shape[1:]) / 2)
-            inside_atoms_idx = docktgrid.molparser.extract_binding_pocket(
-                ptn.coords, ligand_mols[i].coords.mean(dim=1), radius
-            )
+        # # exclude atoms outside the box
+        # for i, ptn in enumerate(protein_mols):
+        #     radius = np.ceil(np.sqrt(3) * max(self.voxel_grid.shape[1:]) / 2)
+        #     inside_atoms_idx = docktgrid.molparser.extract_binding_pocket(
+        #         ptn.coords, ligand_mols[i].coords.mean(dim=1), radius
+        #     )
 
-            # keep only the atoms inside the binding pocket, rewrite the MolecularData attributes
-            ptn.coords = ptn.coords[:, inside_atoms_idx]
-            ptn.element_symbols = ptn.element_symbols[inside_atoms_idx]
+        #     # keep only the atoms inside the binding pocket, rewrite the MolecularData attributes
+        #     ptn.coords = ptn.coords[:, inside_atoms_idx]
+        #     ptn.element_symbols = ptn.element_symbols[inside_atoms_idx]
 
         # apply molecular dropout view
         voxel_grid = self.voxel_grid

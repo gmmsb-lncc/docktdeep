@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docktdeep"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
     {name = "Matheus M. P. da Silva", email = "matheusp@posgrad.lncc.br"},
 ]
@@ -33,6 +33,7 @@ dependencies = [
     "numpy>=1.21.0",
     "tqdm>=4.60.0",
     "pytorch-lightning>=2.0.0",
+    "lightning>=2.5.0",
     "docktgrid>=0.0.3",
     "biopandas>=0.4.0",
     "pandas>=1.3.0",

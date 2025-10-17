@@ -2,7 +2,7 @@
 docktdeep: A deep learning model for protein-ligand binding affinity prediction.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # Import modules to make them available at package level
 from . import models
